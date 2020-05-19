@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>V2ex 投票生成器</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/element-ui@2.13.0/lib/theme-chalk/index.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .el-header {
+            margin: 80px auto;
+            text-align: center;
+        }
+
+        .el-footer {
+            text-align: center;
+            font-size: small;
+        }
+
+        .el-main {
+            margin: 0 auto;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .el-card {
+            margin: 0 0 20px 0;
+        }
+
+        .box-card {
+            min-height: 300px;
+        }
+
+        .input-btn {
+            width: 435px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+    <template id="tpl">
+        <el-container>
+            <el-header>
+                <h1>V2ex 投票生成器</h1>
+            </el-header>
+
+            <el-main>
+                <el-card class="box-card" shadow="hover">
+                    <el-tabs v-model="activeTabName" @tab-click="handleTabsClick" tab-position="left">
+                        <el-tab-pane label="生成表单" name="generate">
+                            <el-form :model="form" ref="form" :rules="rules" label-width="100px">
+                                <el-form-item prop="title" label="讨论标题">
+                                    <el-input v-model="form.title" placeholder="起个标题？"></el-input>
+                                </el-form-item>
+                                <el-form-item v-for="(item, index) in form.items" label="选项" :key="item.key" :prop="'items.'+index+'.value'" :rules="[
+                            {required: true, message: '选项不能为空', trigger: ['blur', 'change'] },
+                            {min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: ['blur', 'change']},
+                            {validator: itemDeduplication, message: '不能有相同的选项', trigger: 'blur'}
+                        ]">
+                                    <el-input v-model="item.value" :placeholder="'选项'+index" class="input-btn"></el-input>
+                                    <el-button type="danger" @click.prevent="removeItem(item)">删除</el-button>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="submitForm">生成图片</el-button>
+                                    <el-button @click="addItem">新增选项</el-button>
+                                    <el-button type="warning" @click="resetForm">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-tab-pane>
+                        <el-tab-pane label="查看结果" name="view" disabled>
+                            <el-form label-width="100px">
+                                <el-form-item prop="code" label="插入代码">
+                                    <el-input type="textarea" :rows="4" v-model="image_url"></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="copy(image_url, '图片地址')">复制图片地址</el-button>
+                                    <el-button type="primary" @click="copy(image_md_code, 'Markdown 代码')">复制 Markdown 代码</el-button>
+                                </el-form-item>
+                                <el-form-item prop="view" label="图片预览">
+                                    <img :src="image_url" />
+                                </el-form-item>
+                            </el-form>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-card>
+                <el-card shadow="hover">
+                    <div slot="header" class="clearfix">
+                        <span>使用说明</span>
+                    </div>
+                    <div>投票本身不保存数据，所有数据均采集自被访问帖子的回复。</div>
+                    <div>回复中使用 #选项名# 即可参与投票，一人仅限投一个选项一票。</div>
+                    <div>为减少请求，默认最多一分钟更新一次回复的统计信息。</div>
+                    <div>投票不与帖子绑定，插入哪个帖子，就以哪个帖子的回复为准。</div>
+                    <div>同一个投票可插入多个帖子，但数据互不关联/影响。</div>
+                    <div>非帖子内加载图片时会随机生成投票数据以供预览。</div>
+                </el-card>
+            </el-main>
+
+            <el-footer>
+                <span><a href="https://www.qs5.org">青石坞</a> &copy; 2020</span>
+            </el-footer>
+        </el-container>
+    </template>
+
+    <script src="//cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/element-ui@2.13.0/lib/index.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/axios@0.19.2/dist/axios.min.js"></script>
+    <script>
+        app = new Vue({
+            el: '#app',
+            template: '#tpl',
+            data: function() {
+                var code = location.hash.substr(1);
+                return {
+                    img_prefix: 'https://www.qs5.org/tools/v2ex_vote/',
+                    activeTabName: 'generate',
+                    image_url: '',
+                    form: {
+                        title: '',
+                        items: [{
+                                value: ''
+                            },
+                            {
+                                value: ''
+                            },
+                        ]
+                    },
+                    rules: {
+                        title: [{
+                                required: true,
+                                message: '必须起一个标题',
+                                trigger: ['blur', 'change']
+                            },
+                            {
+                                min: 5,
+                                max: 30,
+                                message: '长度在 5 到 30 个字符',
+                                trigger: ['blur', 'change']
+                            }
+                        ]
+                    }
+                }
+            },
+            computed: {
+                image_md_code: function() {
+                    return '![投票:' + this.form.title + '](' + this.image_url + ')';
+                }
+            },
+            methods: {
+                handleTabsClick: function(tab, event) {
+                    if (tab.name == 'view') {
+                        return false;
+                    }
+                },
+                itemDeduplication: function(rule, value, callback) {
+                    console.log(rule);
+                    let getPrefix = function(prop) {
+                        return prop.split('.').slice(0, -2).join('.');
+                    }
+                    for (let i = 0; i < app.$refs.form.fields.length; i++) {
+                        const element = app.$refs.form.fields[i];
+                        if (element.fieldValue == value && getPrefix(element.prop) == getPrefix(rule.field) && element.prop != rule.field) {
+                            callback(new Error(rule.message || rule.field + ' 与 ' + element.prop + ' 内容不能相同'));
+                        }
+                    }
+                    callback();
+                },
+                submitForm: function() {
+                    this.$refs.form.validate((valid) => {
+                        console.log(valid);
+                        if (!valid) {
+                            return false;
+                        }
+
+                        let items = this.form.items.map(function(item) {
+                                return encodeURI(item.value)
+                            }).join('|'),
+                            title = encodeURI(this.form.title);
+                        this.image_url = this.img_prefix + title + '/' + items + '.svg';
+                        this.activeTabName = 'view';
+                    });
+                },
+                resetForm() {
+                    this.$refs.form.resetFields();
+                    this.form.items = [{
+                        value: ''
+                    }, {
+                        value: ''
+                    }];
+                },
+                addItem() {
+                    this.form.items.push({
+                        value: ''
+                    })
+                },
+                removeItem(item) {
+                    if (this.form.items.length <= 2) {
+                        this.$message.error('最少要保留两个选项。');
+                        return;
+                    }
+                    var index = this.form.items.indexOf(item)
+                    if (index !== -1) {
+                        this.form.items.splice(index, 1)
+                    }
+                },
+                copy(str, msg) {
+                    const input = document.createElement('textarea');
+                    document.body.appendChild(input);
+                    input.innerHTML = str;
+                    input.select();
+                    if (document.execCommand('copy')) {
+                        document.execCommand('copy');
+                        this.$message({
+                            message: (msg || '') + '已成功复制',
+                            type: 'success'
+                        });
+                    }
+                    document.body.removeChild(input);
+                }
+            },
+            // created: function() {
+            //     this.form = {
+            //         title: '这是一个标题',
+            //         items: [{
+            //                 value: '选项一'
+            //             },
+            //             {
+            //                 value: '选项二'
+            //             }
+            //         ]
+            //     }
+            // }
+        });
+    </script>
+</body>
+
+</html>

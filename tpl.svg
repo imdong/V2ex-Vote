@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="<?=$canvas_width?>" height="<?=count($this->items) * 25 + 65?>">
+	<text x="0" y="15">问题: <?=$this->title?></text>
+
+    <?php $i = 0; $item_title = []; ?>
+    <?php
+        foreach($this->items as $title => $item ) {
+            $item_title[] = sprintf('#%s#', $title);
+            $proport = $vote_count > 0 ? intval($item['count'] / $vote_count * 100) : 0;
+    ?>
+        <rect x="0" y="<?=($i * 25 + 24)?>" width="500" height="20" style="fill:#F2F6FC;"/>
+        <rect x="0" y="<?=($i * 25 + 24)?>" width="<?=$max_conut > 0 ? $item['count'] / $max_conut * ($max_conut == $vote_count ? 500 : 480) : 0?>"
+            height="20" style="fill:<?=$item['color']?>;"/>
+        <text x="5" y="<?=($i * 25 + 40)?>"><?=$title?></text>
+        <text x="<?=$canvas_width - 100?>" y="<?=($i * 25 + 40)?>"><?=$proport?>%</text>
+        <text x="<?=$canvas_width - 50?>" y="<?=($i * 25 + 40)?>"><?=$item['count']?> 票</text>
+    <?php $i++; } ?>
+
+	<text x="0" y="<?=($i * 25 + 40)?>" style="font-size:13px">
+        已有 <?=$vote_count?> 人参与投票, 回复 #选项标题# 参与投票。
+    </text>
+    <text x="0" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
+        Last update time <?=date('Y-m-d H:i:s', $update_time)?> @ \t\<?=$this->tid ?? '000001'?>
+    </text>
+    <text x="<?=$canvas_width - 160?>" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
+        青石坞 © 2020 www.qs5.org
+    </text>
+    <!-- page time: <?=date('Y-m-d H:i:s')?> -->
+</svg>
