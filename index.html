@@ -60,7 +60,8 @@
                                 <el-form-item v-for="(item, index) in form.items" label="选项" :key="item.key" :prop="'items.'+index+'.value'" :rules="[
                             {required: true, message: '选项不能为空', trigger: ['blur', 'change'] },
                             {min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: ['blur', 'change']},
-                            {validator: itemDeduplication, message: '不能有相同的选项', trigger: 'blur'}
+                            {validator: itemDeduplication, message: '不能有相同的选项', trigger: 'blur'},
+                            {validator: characterFiltering, message: '不能包含特殊字符', trigger: 'blur'}
                         ]">
                                     <el-input v-model="item.value" :placeholder="'选项'+index" class="input-btn"></el-input>
                                     <el-button type="danger" @click.prevent="removeItem(item)">删除</el-button>
@@ -157,30 +158,36 @@
                         return false;
                     }
                 },
+                characterFiltering: function (rule, value, callback) {
+                    if (value.indexOf('#') >= 0) {
+                        callback(new Error("选项中不能有 # 字符"));
+                        return;
+                    }
+
+                    callback();
+                },
                 itemDeduplication: function(rule, value, callback) {
-                    console.log(rule);
                     let getPrefix = function(prop) {
                         return prop.split('.').slice(0, -2).join('.');
                     }
                     for (let i = 0; i < app.$refs.form.fields.length; i++) {
                         const element = app.$refs.form.fields[i];
                         if (element.fieldValue == value && getPrefix(element.prop) == getPrefix(rule.field) && element.prop != rule.field) {
-                            callback(new Error(rule.message || rule.field + ' 与 ' + element.prop + ' 内容不能相同'));
+                            callback(new Error(rule.field + ' 与 ' + element.prop + ' 内容不能相同'));
                         }
                     }
                     callback();
                 },
                 submitForm: function() {
                     this.$refs.form.validate((valid) => {
-                        console.log(valid);
                         if (!valid) {
                             return false;
                         }
 
                         let items = this.form.items.map(function(item) {
-                                return encodeURI(item.value)
+                                return encodeURIComponent(item.value)
                             }).join('|'),
-                            title = encodeURI(this.form.title);
+                            title = encodeURIComponent(this.form.title);
                         this.image_url = this.img_prefix + title + '/' + items + '.svg';
                         this.activeTabName = 'view';
                     });
@@ -222,19 +229,7 @@
                     }
                     document.body.removeChild(input);
                 }
-            },
-            // created: function() {
-            //     this.form = {
-            //         title: '这是一个标题',
-            //         items: [{
-            //                 value: '选项一'
-            //             },
-            //             {
-            //                 value: '选项二'
-            //             }
-            //         ]
-            //     }
-            // }
+            }
         });
     </script>
 </body>

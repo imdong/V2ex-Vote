@@ -196,7 +196,7 @@ class Vote
             return false;
         }
 
-        $this->title = $title;
+        $this->title = htmlspecialchars($title);
         return true;
     }
 
@@ -219,6 +219,9 @@ class Vote
                 $this->setError(1004, '某个选项太"长"或太"短"(5-20个字符)');
                 return false;
             }
+
+            // 安全转义
+            $item = htmlspecialchars($item);
 
             if (isset($this->items[$item])) {
                 $this->setError(1005, '选项有重复');
@@ -410,7 +413,7 @@ class Vote
         $regexs = [
             'no'      => '#<span class="no">(?<no>[0-9]+)<\/span>#',
             'user'    => '#class="dark">(?<user>[^<]+)<\/a>#',
-            'content' => '#<div class="reply_content">(?<content>.+?)<\/div>\s<\/td>#'
+            'content' => '#<div class="reply_content">(?<content>.+?)<\/div>\s*<\/td>#s'
         ];
         foreach ($replys['body'] as $id => $reply_body) {
             $reply_info = [
@@ -474,7 +477,8 @@ class Vote
         extract($this->options);
 
         header('Content-Type: image/svg+xml');
-        header('Cache-Control: max-age=' . $this->config['refresh_time']);
+        // 考虑到 CDN 缓存无法区分帖子
+        // header('Cache-Control: max-age=' . $this->config['refresh_time']);
         include $this->config['show_tpl'];
     }
 
