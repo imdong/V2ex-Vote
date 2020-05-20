@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="<?=$canvas_width?>" height="<?=count($this->items) * 25 + 62?>">
-	<text x="0" y="15" style="fill: #666;">问题: <?=$this->title?></text>
+	<text x="0" y="15" style="fill: #666; font-family:helvetica neue,luxi sans,dejavu sans,segoe ui,hiragino sans gb,microsoft yahei,sans-serif; font-size: 15px;">问题: <?=$this->title?></text>
 
     <?php $i = 0; $item_title = []; ?>
     <?php
@@ -10,9 +10,9 @@
         <rect x="0" y="<?=($i * 25 + 24)?>" width="500" height="20" style="fill:#F2F6FC;"/>
         <rect x="0" y="<?=($i * 25 + 24)?>" width="<?=$max_conut > 0 ? $item['count'] / $max_conut * ($max_conut == $vote_count ? 500 : 480) : 0?>"
             height="20" style="fill:<?=$item['color']?>;"/>
-        <text x="5" y="<?=($i * 25 + 40)?>"><?=$title?></text>
-        <text x="<?=$canvas_width - 100?>" y="<?=($i * 25 + 40)?>"><?=$proport?>%</text>
-        <text x="<?=$canvas_width - 50?>" y="<?=($i * 25 + 40)?>"><?=$item['count']?> 票</text>
+        <text x="5" y="<?=($i * 25 + 39)?>" style="font-size: 14px;"><?=$title?></text>
+        <text x="<?=$canvas_width - 100?>" y="<?=($i * 25 + 39)?>" style="font-size: 14px;"><?=$proport?>%</text>
+        <text x="<?=$canvas_width - 50?>" y="<?=($i * 25 + 39)?>" style="font-size: 14px;"><?=$item['count']?> 票</text>
     <?php $i++; } ?>
 
 	<text x="0" y="<?=($i * 25 + 40)?>" style="font-size:13px; fill: #666;">
