@@ -118,12 +118,13 @@
             data: function() {
                 var code = location.hash.substr(1);
                 return {
-                    img_prefix: 'https://www.qs5.org/tools/v2ex_vote/',
+                    img_prefix: location.origin + location.pathname,
                     activeTabName: 'generate',
                     image_url: '',
                     form: {
                         title: '',
-                        items: [{
+                        items: [
+                            {
                                 value: ''
                             },
                             {
@@ -184,9 +185,9 @@
                             return false;
                         }
 
-                        let items = this.form.items.map(function(item) {
+                        let items = encodeURIComponent(this.form.items.map(function(item) {
                                 return encodeURIComponent(item.value)
-                            }).join('|'),
+                            }).join('|')),
                             title = encodeURIComponent(this.form.title);
                         this.image_url = this.img_prefix + title + '/' + items + '.svg';
                         this.activeTabName = 'view';
