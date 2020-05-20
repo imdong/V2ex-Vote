@@ -24,5 +24,5 @@
     <text x="<?=$canvas_width - 160?>" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
         青石坞 © 2020 www.qs5.org
     </text>
-    <!-- page time: <?=date('Y-m-d H:i:s')?> -->
+    <!-- Page Time: <?=(new DateTime())->format('Y-m-d H:i:s.u')?> -->
 </svg>
