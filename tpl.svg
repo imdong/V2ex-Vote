@@ -19,7 +19,7 @@
         已有 <?=$vote_count?> 人参与投票, 回复 “#选项标题# 与你的看法” 参与讨论。
     </text>
     <text x="0" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
-        Last update time <?=date('Y-m-d H:i:s', $update_time)?> @ \t\<?=$this->tid ?? '000001'?>
+        Last update time <?=date('Y-m-d H:i:s', $update_time)?> @ \t\<?=$this->tid ?? '预览模式'?>
     </text>
     <text x="<?=$canvas_width - 160?>" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
         青石坞 © 2021 www.qs5.org
