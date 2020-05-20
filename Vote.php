@@ -10,7 +10,7 @@ class Vote
      *
      * @var string
      */
-    private $host = 'https://fy-la1.qs5.org/v2ex';
+    private $host = 'https://www.v2ex.com';
 
     /**
      * 可配置项
