@@ -16,7 +16,7 @@
     <?php $i++; } ?>
 
 	<text x="0" y="<?=($i * 25 + 40)?>" style="font-size:13px; fill: #666;">
-        已有 <?=$vote_count?> 人参与投票, 回复 #选项标题# 参与投票。
+        已有 <?=$vote_count?> 人参与投票, 回复 “#选项标题# 与你的看法” 来参与投票。
     </text>
     <text x="0" y="<?=($i * 25 + 58)?>" style="font-size: 12px;fill: #ccc;">
         Last update time <?=date('Y-m-d H:i:s', $update_time)?> @ \t\<?=$this->tid ?? '000001'?>
