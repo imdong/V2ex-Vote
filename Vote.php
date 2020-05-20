@@ -259,6 +259,31 @@ class Vote
     }
 
     /**
+     * 获取更新缓存的锁 Key
+     *
+     * @param string $tid
+     * @return string
+     */
+    private function getLockKey(string $tid = null): string
+    {
+        return sprintf('v2Vote::Lock:%s', $tid ?? $this->tid);
+    }
+
+    /**
+     * 更新锁
+     *
+     * @param bool $isLock 是否锁定
+     * @return bool
+     */
+    private function refreshLock(bool $isLock = true): bool
+    {
+        $key = $this->getLockKey();
+        $redis = $this->getRedis();
+
+        return $isLock ? $redis->setnx($key, 'lock') : $redis->del($key) == 1;
+    }
+
+    /**
      * 获取投票数量
      *
      * @return void
@@ -266,7 +291,7 @@ class Vote
     public function getVote(): bool
     {
         // 读缓存成功就没事了
-        if ($this->getFromCache()) {
+        if ($this->getFromCache() || !$this->refreshLock(true)) {
             return true;
         }
 
@@ -309,6 +334,9 @@ class Vote
 
         // 保存到缓存
         $this->saveToCache();
+
+        // 解锁
+        $this->refreshLock(false);
 
         return true;
     }
