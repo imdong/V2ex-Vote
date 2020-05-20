@@ -540,7 +540,7 @@ class Vote
     {
         // // 临时加入缓存(调试用)
         // echo "getPage: {$tid}/{$page}\n";
-        // $cache_file = sprintf('./cache/%s_%s.html', $tid, $page);
+        $cache_file = sprintf('./cache/%s_%s.html', $tid, $page);
         // if (file_exists($cache_file)) {
         //     return file_get_contents($cache_file);
         // }
@@ -554,7 +554,7 @@ class Vote
         curl_setopt_array($ch, $options);
 
         $html = curl_exec($ch);
-        // file_put_contents($cache_file, $html); // 保存到缓存 (调试用)
+        file_put_contents($cache_file, $html . (new \DateTime())->format('Y-m-d H:i:s.u')); // 保存到缓存 (调试用)
         return $html;
     }
 
